@@ -154,14 +154,18 @@ namespace parser
 
         Reader& reader_;
 
+        struct State
+        {
+            PositionType pos_;
+            size_t line_;
+        };
+
         // State stack, for backtracking
-        std::vector<PositionType> pos_stack_;
+        std::vector<State> stack_;
 
         PositionType max_pos_;
 
         std::size_t line_;
-
-        std::vector<std::size_t> line_stack_;
 
         // ctor
         ReaderState(SemanticState& ss, Reader& r)
@@ -204,8 +208,7 @@ namespace parser
         // Common interface
         inline void push_state()
         {
-            line_stack_.push_back(line_);
-            pos_stack_.push_back(pos());
+            stack_.push_back((State){pos(), line_});
         }
 
         inline void check_max()
@@ -217,17 +220,15 @@ namespace parser
         inline void rollback()
         {
             check_max();
-            reader_.set_pos(pos_stack_.back());
-            line_ = line_stack_.back();
-            pos_stack_.pop_back();
-            line_stack_.pop_back();
+            reader_.set_pos(stack_.back().pos_);
+            line_ = stack_.back().line_;
+            stack_.pop_back();
         }
 
         inline void commit()
         {
             check_max();
-            pos_stack_.pop_back();
-            line_stack_.pop_back();
+            stack_.pop_back();
         }
 
         inline std::string to_string(PositionType p, std::size_t size) const
