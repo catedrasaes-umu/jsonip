@@ -208,7 +208,8 @@ namespace parser
         // Common interface
         inline void push_state()
         {
-            stack_.push_back((State){pos(), line_});
+            const State cur_state = {pos(), line_};
+            stack_.push_back(cur_state);
         }
 
         inline void check_max()
