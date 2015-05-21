@@ -116,7 +116,7 @@ namespace detail
     template <typename T>
     struct string_helper : helper
     {
-        void new_string(holder& h, const std::string& d) { h.get<T>() = d; }
+        void new_string(holder& h, const std::string& d) const { h.get<T>() = d; }
 
         template <typename Writer>
         static void write(Writer& w, const T& s)
