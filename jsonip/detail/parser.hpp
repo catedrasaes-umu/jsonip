@@ -68,7 +68,7 @@ namespace parser
     struct IStreamReader
     {
         // Position type
-        typedef std::streampos PositionType;
+        typedef std::streamoff PositionType;
 
         // stream
         std::istream& in_;

@@ -108,6 +108,17 @@ namespace jsonip
         return parse(t, str.data(), str.size());
     }
 
+    template <typename T>
+    bool parse(T& t, std::istream& is)
+    {
+        typedef parser::ReaderState<semantic_state, parser::IStreamReader> state;
+        semantic_state ss(std::make_pair(holder(&t), detail::get_helper(t)));
+        parser::IStreamReader reader(is);
+        state st(ss, reader);
+
+        return jsonip::grammar::gram::match(st);
+    }
+
 } // namespace jsonip
 
 #endif // JSONIP_PARSE_HPP

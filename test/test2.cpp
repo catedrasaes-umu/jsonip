@@ -30,5 +30,27 @@ int main(int argc, char **argv)
 
     jsonip::write(std::cout, v3);
     std::cout << std::endl << std::endl;
+
+    value v4;
+    std::stringstream ss;
+    jsonip::write(ss, v3);
+    jsonip::parse(v4, ss);
+
+    jsonip::write(std::cout, v4);
+    std::cout << std::endl << std::endl;
+
+    value v5;
+    jsonip::parse(v5, "{}");
+    jsonip::write(std::cout, v5);
+    std::cout << std::endl << std::endl;
+
+    jsonip::parse(v5, "null");
+    jsonip::write(std::cout, v5);
+    std::cout << std::endl << std::endl;
+
+    jsonip::parse(v5, "{ \"asd\" : [1, 2, 3] }");
+    jsonip::write(std::cout, v5);
+    std::cout << std::endl << std::endl;
+
     return 0;
 }
