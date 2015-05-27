@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include "holder.hpp"
+#include "value.hpp"
 
 #include <boost/core/enable_if.hpp>
 #include <boost/fusion/adapted.hpp> // BOOST_FUSION_ADAPT_STRUCT
@@ -37,6 +38,7 @@ namespace jsonip
         virtual void new_null(holder& h) const { throw invalid_operation(); }
 
         // For structs
+        virtual void object_start(holder& h) const { throw invalid_operation(); }
         virtual std::pair<holder, const helper*> new_child(
             holder& h, const std::string& name) const
         {
@@ -44,6 +46,7 @@ namespace jsonip
         }
 
         // For arrays
+        virtual void array_start(holder& h) const { throw invalid_operation(); }
         virtual std::pair<holder, const helper*> new_child(holder& h) const
         {
             throw invalid_operation();
@@ -187,6 +190,8 @@ namespace detail
             boost::mpl::for_each<range_t>(initializer(*this));
         }
 
+        void object_start(holder& h) const {}
+
         std::pair<holder, const helper*> new_child(
             holder& h, const std::string& name) const
         {
@@ -232,6 +237,8 @@ namespace detail
         typedef typename T::value_type value_type;
         typedef calculate_helper<value_type> slice_helper;
 
+        void array_start(holder& h) const { h.get<T>().clear(); }
+
         std::pair<holder, const helper*> new_child(holder &h) const
         {
             T& t = h.get<T>();
@@ -257,6 +264,8 @@ namespace detail
         typedef typename T::mapped_type mapped_type;
         typedef calculate_helper<mapped_type> slice_helper;
 
+        void object_start(holder& h) const { h.get<T>().clear(); }
+
         std::pair<holder, const helper*> new_child(
             holder& h, const std::string& name) const
         {
@@ -279,6 +288,79 @@ namespace detail
             }
 
             w.object_end();
+        }
+    };
+
+    struct value_helper : helper
+    {
+        typedef value T;
+
+        void new_double(holder& h, double d) const { h.get<T>().number() = d; }
+
+        void new_string(holder& h, const std::string& d) const { h.get<T>().string() = d; }
+
+        void new_bool(holder& h, bool d) const { h.get<T>().boolean() = d; }
+
+        void new_null(holder& h) const { h.get<T>().invalidate(); }
+
+        void object_start(holder& h) const { h.get<T>().object().clear(); }
+
+        void array_start(holder& h) const { h.get<T>().array().clear(); }
+
+        std::pair<holder, const helper*> new_child(holder& h, const std::string& name) const
+        {
+            T::object_type& t = h.get<T>().object();
+            return std::make_pair(holder(&t[name]), this);
+        }
+
+        std::pair<holder, const helper*> new_child(holder& h) const
+        {
+            T::array_type& t = h.get<T>().array();
+            t.push_back(value());
+            return std::make_pair(holder(&t.back()), this);
+        }
+
+        template< typename Writer >
+        static inline void write(Writer& w, const T& t)
+        {
+            switch (t.type())
+            {
+                case value::Null:
+                    w.new_null();
+                    break;
+                case value::Number:
+                    w.new_double(t.number());
+                    break;
+                case value::String:
+                    w.new_string(t.string());
+                    break;
+                case value::Boolean:
+                    w.new_bool(t.boolean());
+                    break;
+                case value::Array:
+                {
+                    const T::array_type& a = t.array();
+                    w.array_start();
+                    for (T::const_array_iterator i = a.begin(), e = a.end(); i != e; ++i)
+                    {
+                        write(w, *i);
+                    }
+                    w.array_end();
+                }
+                break;
+                case value::Object:
+                {
+                    const T::object_type& a = t.object();
+                    w.object_start();
+                    for (T::const_object_iterator i = a.begin(), e = a.end(); i != e; ++i)
+                    {
+                        w.new_member(i->first);
+                        write(w, i->second);
+                    }
+                    w.object_end();
+                }
+                break;
+            }
         }
     };
 
@@ -328,6 +410,12 @@ namespace detail
         // T, typename boost::enable_if<typename boost::is_class<T>::type >::type >
     {
         typedef struct_helper<T> type;
+    };
+
+    template <>
+    struct calculate_helper_impl<value>
+    {
+        typedef value_helper type;
     };
 
 }  // namespace detail

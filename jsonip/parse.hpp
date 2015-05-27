@@ -37,6 +37,7 @@ namespace jsonip
         void object_start()
         {
             pre();
+            state.back().second->object_start(state.back().first);
         }
 
         void new_member(const std::string& str)
@@ -52,6 +53,7 @@ namespace jsonip
         void array_start()
         {
             pre();
+            state.back().second->array_start(state.back().first);
             state.push_back(state_t()); // adds a placeholder
         }
 
