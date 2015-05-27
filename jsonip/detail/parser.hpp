@@ -14,6 +14,7 @@ namespace parser
     {
         // Position type
         typedef const char* PositionType;
+        typedef ptrdiff_t OffsetType;
 
         // buffer
         PositionType buf_;
@@ -68,7 +69,8 @@ namespace parser
     struct IStreamReader
     {
         // Position type
-        typedef std::streamoff PositionType;
+        typedef std::streampos PositionType;
+        typedef std::streamoff OffsetType;
 
         // stream
         std::istream& in_;
@@ -85,7 +87,7 @@ namespace parser
 
         inline void set_pos(PositionType p) { in_.seekg(p); }
 
-        inline std::string to_string(std::streampos p, std::size_t size)
+        inline std::string to_string(PositionType p, std::size_t size)
         {
             const std::streampos old = in_.tellg();
 
@@ -148,6 +150,7 @@ namespace parser
 
         // Position type
         typedef typename Reader::PositionType PositionType;
+        typedef typename Reader::OffsetType OffsetType;
 
         // The inner semantic state.
         SemanticState& ss_;

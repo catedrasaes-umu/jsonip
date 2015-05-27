@@ -34,7 +34,7 @@ namespace grammar
         template <typename S, typename match_pair>
         static inline void process_match (S& state, match_pair const& mp)
         {
-            std::string s = state.to_string(mp.first + 1, mp.second - 2);
+            std::string s = state.to_string(mp.first + typename S::OffsetType(1), mp.second - 2);
             decode_string(s);
             state.semantic_state().new_string(s);
         }
@@ -171,7 +171,7 @@ namespace grammar
         template <typename S, typename match_pair>
         static inline void process_match (S& state, match_pair const& mp)
         {
-            std::string s(mp.first + 1, mp.second - 2);
+            std::string s = state.to_string(mp.first + typename S::OffsetType(1), mp.second - 2);
             decode_string(s);
             state.semantic_state().new_member(s);
         }
