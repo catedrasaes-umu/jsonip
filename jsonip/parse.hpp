@@ -48,6 +48,7 @@ namespace jsonip
 
         void object_end()
         {
+			post();
         }
 
         void array_start()
